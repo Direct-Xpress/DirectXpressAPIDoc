@@ -136,7 +136,7 @@ Authorization: Bearer your_access_token
   "code": 0,
   "message": "Success",
   "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpZGVudGl0eSI6InJuamhrdnQ4Y2RvdnRvdzAiLCJyb2xlIjoiY3VzdG9tZXIiLCJpc3MiOiJkeHByZXNzIiwiZXhwIjoxNzY0ODI3ODI2LCJuYmYiOjE3NjQ3NDE0MjYsImlhdCI6MTc2NDc0MTQyNn0.9g8CP3UFuOZinBB-CceG4wF0a5Z41lBO-Wd84RqotvU",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "expires_in": 86172
   }
 }
@@ -327,4 +327,3 @@ Authorization: Bearer your_access_token
 - v1.2：新增物流下单接口。
 - v1.1：刷新 Access Token 接口明确为无请求体，仅需 Header 携带 Bearer Token。
 - v1.0：获取访问令牌接口文档。
-
