@@ -5,7 +5,7 @@
 - Use HTTPS for all requests; requests and responses are JSON unless noted.
 
 ## Base URL
-- `https://api.yourdomain.com/v1/dx_ltl`
+- `https://api.bz/ltl`
 
 ## Authentication
 - Bearer token in header: `Authorization: Bearer <token>`.
@@ -15,6 +15,45 @@
 - For mutation endpoints, send `Idempotency-Key` (UUID) to safely retry.
 
 ## Endpoints
+
+### Get Access Token
+- `POST https://api.bz/ltl/v1/auth/get_access_token`
+- Purpose: obtain an access token using application credentials.
+- Notes:
+  - Keep `app_key` and `app_secret` secure; do not expose in logs or client bundles.
+  - Headers must include `Content-Type: application/json` so the server parses the body.
+  - `X-App-Language` determines response language (`zh`, `en`, `es`); ensure it is set.
+- Headers:
+  - `Content-Type` (string, required): `application/json`
+  - `X-App-Language` (string, required): target language code (e.g., `en`)
+- Request body (JSON):
+  - `app_key` (string, required): provided by DX
+  - `app_secret` (string, required): secret provided by DX
+- Sample request
+```bash
+curl -X POST https://api.bz/ltl/v1/auth/get_access_token \
+  -H "Content-Type: application/json" \
+  -H "X-App-Language: en" \
+  -d '{
+    "app_key": "sFpB619dM3NKI98d8K015ZrwbCPTL2Vs",
+    "app_secret": "go8CADu1XGevFMikLAiL3DXFyUrEuh5KjGcqeH2ulj1lpHGJacFxRtpbhUkqP7Vq"
+  }'
+```
+- Success response (`200`)
+```json
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpZGVudGl0eSI6InJuamhrdnQ4Y2RvdnRvdzAiLCJyb2xlIjoiY3VzdG9tZXIiLCJpc3MiOiJkeHByZXNzIiwiZXhwIjoxNzY0ODI3ODI2LCJuYmYiOjE3NjQ3NDE0MjYsImlhdCI6MTc2NDc0MTQyNn0.9g8CP3UFuOZinBB-CceG4wF0a5Z41lBO-Wd84RqotvU",
+    "expires_in": 86400
+  }
+}
+```
+- Client-side validation suggestions:
+  - `app_key`: validate length 1–100, alphanumeric (e.g., `/^[A-Za-z0-9]{1,100}$/`).
+  - `app_secret`: validate length 1–200, alphanumeric (e.g., `/^[A-Za-z0-9]{1,200}$/`).
+  - Headers: enforce `Content-Type: application/json` and `X-App-Language` is one of `zh|en|es`.
 
 ### Create Shipment
 - `POST /shipments`

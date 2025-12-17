@@ -1,4 +1,4 @@
-# DirectXpressAPIDoc
+# DirectXpress API Doc
 
 API documentation for DirectXpress services.
 
@@ -11,6 +11,4 @@ API documentation for DirectXpress services.
 2. Apply your actual base URL, authentication scheme, and allowed accessorials/service levels.
 3. Use the provided curl samples to validate connectivity and payload structure.
 
-## Contributing
-- Keep docs in Markdown and prefer request/response samples for clarity.
-- Note breaking changes in each file’s Changelog section.
+Ver: 1.1
