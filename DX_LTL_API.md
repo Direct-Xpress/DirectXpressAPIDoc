@@ -12,7 +12,7 @@ V1.0  （如有建议，请在 issues 提出）
 * [二. API 说明](#api_common_index)
   * [获取访问令牌](#api_get_token)
   * [刷新 Access Token](#api_refresh_token)
-  * [应用场景](#yycj_index)
+  * [物流下单](#api_create_order)
 
 # 一. API 接口规范 <a name="api_standard_index"/>
 
@@ -45,7 +45,6 @@ code | value
 # 二. API 说明 <a name="api_common_index"/>
 
 ## 获取访问令牌 <a name="api_get_token"/>
-### 应用场景 <a name="yycj_index"/>
 用于通过 `app_key` 与 `app_secret` 交换访问令牌。
 
 描述 | 内容
@@ -149,7 +148,119 @@ Authorization: Bearer your_access_token
 前端校验建议：
 - 请求头：`X-App-Language` 填写有效值，`Authorization` 携带有效 Bearer token。
 
+## 物流下单 <a name="api_create_order"/>
+用于创建物流订单（含收件/送件方与货物信息）。
+
+描述 | 内容
+--- | ---
+接口功能 | 创建物流订单
+请求协议 | HTTPS
+请求方法 | POST
+请求格式 | `application/json`
+请求 URL | `https://api.bz/ltl/v1//logistics/create_order`
+请求头 | `Content-Type: application/json`；`X-App-Language: zh/en/es`；`Authorization: Bearer <access_token>`
+备注 | 确保必填字段齐全；确认实际认证方式（如 Bearer token）
+响应格式 | JSON
+
+请求体参数：
+
+参数 | 描述 | 必填 | 类型 | 规则/说明
+--- | --- | --- | --- | ---
+logisticsList | 物流联系人数组 | 否 | array | 至少包含提货/送货地址
+logisticsList[].contactName | 联系人姓名 | 是 | string | 1-100 字
+logisticsList[].companyName | 公司名称 | 是 | string | 1-200 字
+logisticsList[].email | 电子邮箱 | 是 | string | 建议正则 `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$`
+logisticsList[].mobile | 手机号码 | 是 | string | 示例为美国号，可用 `^1?\\d{10}$`
+logisticsList[].addressType | 地址类型 | 是 | number | 1=提货，2=送货
+logisticsList[].fullAddress | 完整地址 | 是 | string | 含街道、城市、州、省/邮编
+logisticsList[].actionTime | 取/送时间 | 是 | number | UTC 时间戳
+cargoList | 货物列表 | 是 | array | 至少 1 条
+cargoList[].cargo_type | 货物类型 | 是 | number | LTL=1
+cargoList[].length | 长 | 是 | number | 非负
+cargoList[].width | 宽 | 是 | number | 非负
+cargoList[].height | 高 | 是 | number | 非负
+cargoList[].weight | 单件重量 | 是 | number | 非负
+cargoList[].quantity | 数量 | 是 | number | 正整数，建议 `^[1-9]\\d*$`
+cargoList[].description | 货物描述 | 是 | string | 可选文案
+ref | 参考号 | 否 | string | 客户自定义单号
+
+请求头参数：
+
+参数名 | 示例值 | 必填 | 描述
+--- | --- | --- | ---
+Content-Type | application/json | 是 | 请求体 JSON
+X-App-Language | en | 是 | 返回语言（`zh`、`en`、`es`）
+Authorization | Bearer your_access_token | 是 | 访问令牌
+
+请求示例：
+```
+POST https://api.bz/ltl/v1//logistics/create_order
+Content-Type: application/json
+X-App-Language: en
+Authorization: Bearer your_access_token
+
+{
+  "logisticsList": [
+    {
+      "contactName": "DX test",
+      "companyName": "The Home Depot",
+      "email": "test@o2o.us",
+      "mobile": "9493356666",
+      "addressType": 1,
+      "fullAddress": "6140 Hamner Ave, Mira Loma, CA 91752",
+      "actionTime": 1764737842
+    },
+    {
+      "contactName": "Little",
+      "companyName": "The Home Depot",
+      "email": "test2@o2o.us",
+      "mobile": "9493356666",
+      "addressType": 2,
+      "fullAddress": "14549 Ramona Ave, Chino, CA 91710",
+      "actionTime": 1764719842
+    }
+  ],
+  "cargoList": [
+    {
+      "cargo_type": 1,
+      "length": 40,
+      "width": 40,
+      "height": 80,
+      "weight": 200,
+      "quantity": 1,
+      "description": "furniture"
+    }
+  ],
+  "ref": "your-ref-123"
+}
+```
+
+响应示例（200）：
+```
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "orderId": 1100000000000006
+  }
+}
+```
+
+错误处理：
+- 400：参数缺失或格式错误。
+- 401：认证失败，需检查 Authorization。
+- 404：接口/资源不存在。
+- 500：服务器异常，建议稍后重试并记录日志。
+
+前端校验建议：
+- 邮箱：`^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$`
+- 手机（示例为美区）：`^1?\\d{10}$`
+- 地址类型：限定 1/2。
+- 尺寸/重量：非负数字；数量：正整数。
+- Header：确保 `Content-Type: application/json`、`X-App-Language`、`Authorization: Bearer <token>`。
+
 # Changelog
+- v1.2：新增物流下单接口。
 - v1.1：刷新 Access Token 接口明确为无请求体，仅需 Header 携带 Bearer Token。
 - v1.0：获取访问令牌接口文档。
 
