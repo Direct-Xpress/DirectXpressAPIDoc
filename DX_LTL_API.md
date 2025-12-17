@@ -11,6 +11,7 @@ V1.0  （如有建议，请在 issues 提出）
   * [接口请求示例](#api_demo_index)
 * [二. API 说明](#api_common_index)
   * [获取访问令牌](#api_get_token)
+  * [刷新 Access Token](#api_refresh_token)
   * [应用场景](#yycj_index)
 
 # 一. API 接口规范 <a name="api_standard_index"/>
@@ -100,6 +101,69 @@ X-App-Language: en
 - `app_key`：长度 1–100，字母数字。
 - `app_secret`：长度 1–200，字母数字。
 - 请求头：`Content-Type` 必须为 `application/json`，`X-App-Language` 必须为 `zh|en|es`。
+
+## 刷新 Access Token <a name="api_refresh_token"/>
+用于刷新 Access Token，保持会话有效。
+
+描述 | 内容
+--- | ---
+接口功能 | 刷新 Access Token
+请求协议 | HTTPS
+请求方法 | GET
+请求格式 | `application/json`
+请求 URL | `https://api.bz/ltl/v1/auth/refresh_access_token`
+请求头 | `Content-Type: application/json`；`X-App-Language: zh/en/es`；`Authorization: Bearer <access_token>`
+备注 | 需提供有效的 Bearer Token；`app_key`/`app_secret` 作为补充校验
+响应格式 | JSON
+
+请求参数（请求体 JSON，尽管为 GET，仍按接口要求传递）：
+
+参数 | 描述 | 必填 | 类型 | 规则
+--- | --- | --- | --- | ---
+app_key | DX 提供的 key | 是 | string | 建议正则 `^[A-Za-z0-9]{16,32}$`
+app_secret | DX 提供的密钥 | 是 | string | 建议正则 `^[A-Za-z0-9]{16,32}$`
+
+请求头参数：
+
+参数名 | 示例值 | 必填 | 描述
+--- | --- | --- | ---
+Content-Type | application/json | 是 | 请求体 JSON
+X-App-Language | en | 是 | 返回语言（`zh`、`en`、`es`）
+Authorization | Bearer your_access_token | 是 | 现有访问令牌
+
+请求示例：
+```
+GET https://api.bz/ltl/v1/auth/refresh_access_token
+Content-Type: application/json
+X-App-Language: en
+Authorization: Bearer your_access_token
+
+{
+  "app_key": "your_app_key_16_32_chars",
+  "app_secret": "your_app_secret_16_32_chars"
+}
+```
+
+响应示例（200）：
+```
+{
+  "code": 0,
+  "message": "Success",
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpZGVudGl0eSI6InJuamhrdnQ4Y2RvdnRvdzAiLCJyb2xlIjoiY3VzdG9tZXIiLCJpc3MiOiJkeHByZXNzIiwiZXhwIjoxNzY0ODI3ODI2LCJuYmYiOjE3NjQ3NDE0MjYsImlhdCI6MTc2NDc0MTQyNn0.9g8CP3UFuOZinBB-CceG4wF0a5Z41lBO-Wd84RqotvU",
+    "expires_in": 86172
+  }
+}
+```
+
+错误处理：
+- 401：认证失败（无效 `app_key`/`app_secret` 或 token）；前端应提示重新输入或重新登录。
+- 404：接口/资源不存在。
+
+前端校验建议：
+- `app_key`：长度 16–32，字母数字。
+- `app_secret`：长度 16–32，字母数字。
+- 请求头：确保 `Content-Type: application/json`、`X-App-Language` 填写有效值，`Authorization` 携带有效 Bearer token。
 
 # Changelog
 - v1.0：获取访问令牌接口文档。
