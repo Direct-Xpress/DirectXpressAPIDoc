@@ -1,130 +1,106 @@
-# DX_LTL API
+# DX_LTL 获取访问令牌 API 文档
 
-## Overview
-- LTL (less-than-truckload) shipping API covering rating, shipment creation, and tracking.
-- Use HTTPS for all requests; requests and responses are JSON unless noted.
+V1.0  （如有建议，请在 issues 提出）
 
-## Base URL
-- `https://api.bz/ltl`
+---
 
-## Authentication
-- Bearer token in header: `Authorization: Bearer <token>`.
-- Tokens are project-scoped; request revocation if leaked.
+# 目录 <a name="index"/>
+* [一. API 接口规范](#api_standard_index)
+  * [接口响应规范](#api_resp_index)
+  * [接口签名规范](#api_sign_index)
+  * [接口请求示例](#api_demo_index)
+* [二. API 说明](#api_common_index)
+  * [获取访问令牌](#api_get_token)
+  * [应用场景](#yycj_index)
 
-## Idempotency
-- For mutation endpoints, send `Idempotency-Key` (UUID) to safely retry.
+# 一. API 接口规范 <a name="api_standard_index"/>
 
-## Endpoints
-
-### Get Access Token
-- `POST https://api.bz/ltl/v1/auth/get_access_token`
-- Purpose: obtain an access token using application credentials.
-- Notes:
-  - Keep `app_key` and `app_secret` secure; do not expose in logs or client bundles.
-  - Headers must include `Content-Type: application/json` so the server parses the body.
-  - `X-App-Language` determines response language (`zh`, `en`, `es`); ensure it is set.
-- Headers:
-  - `Content-Type` (string, required): `application/json`
-  - `X-App-Language` (string, required): target language code (e.g., `en`)
-- Request body (JSON):
-  - `app_key` (string, required): provided by DX
-  - `app_secret` (string, required): secret provided by DX
-- Sample request
-```bash
-curl -X POST https://api.bz/ltl/v1/auth/get_access_token \
-  -H "Content-Type: application/json" \
-  -H "X-App-Language: en" \
-  -d '{
-    "app_key": "app_key",
-    "app_secret": "app_secretq"
-  }'
+## 接口响应规范 <a name="api_resp_index"/>
+HTTP 接口遵循统一返回格式：
 ```
-- Success response (`200`)
-```json
+{
+  "code": int,        // 必选，返回码
+  "message": "",      // 可选，返回消息，如 ok、error
+  "data": {}          // 可选，返回内容
+}
+```
+返回码参考（通常与 HTTP 状态码一致）：
+
+code | value
+--- | ---
+200 | 成功
+4xx | 客户端错误
+5xx | 服务器端错误
+自定义 | 业务自定义
+
+## 接口签名规范 <a name="api_sign_index"/>
+- 如需加密传输，可使用 AES 对请求体加密后再 Base64（base64UrlEncode）编码，将签名值放入参数（如 `sign=xxx`）。
+- 示例参数：加密模式 AES-128-CBC（推荐）或 AES-128-ECB；密钥示例 `123456789`；填充 PKCS7。
+- 仅在服务器要求签名时启用；本接口默认使用 HTTPS 明文 JSON。
+
+## 接口请求示例 <a name="api_demo_index"/>
+见下方接口示例。
+
+# 二. API 说明 <a name="api_common_index"/>
+
+## 获取访问令牌 <a name="api_get_token"/>
+### 应用场景 <a name="yycj_index"/>
+用于通过 `app_key` 与 `app_secret` 交换访问令牌。
+
+描述 | 内容
+--- | ---
+接口功能 | 获取访问令牌
+请求协议 | HTTPS
+请求方法 | POST
+请求格式 | `application/json`
+请求 URL | `https://api.bz/ltl/v1/auth/get_access_token`
+请求头 | `Content-Type: application/json`；`X-App-Language: zh/en/es`
+备注 | `app_key`/`app_secret` 为敏感信息，务必妥善保管
+响应格式 | JSON
+
+请求参数：
+
+参数 | 描述 | 必填 | 类型 | 规则
+--- | --- | --- | --- | ---
+app_key | DX 提供的 key | 是 | string | 正则建议 `^[A-Za-z0-9]{1,100}$`
+app_secret | DX 提供的密钥 | 是 | string | 正则建议 `^[A-Za-z0-9]{1,200}$`
+
+请求头参数：
+
+参数名 | 示例值 | 必填 | 描述
+--- | --- | --- | ---
+Content-Type | application/json | 是 | 请求体 JSON
+X-App-Language | en | 是 | 返回语言（`zh`、`en`、`es`）
+
+请求示例：
+```
+POST https://api.bz/ltl/v1/auth/get_access_token
+Content-Type: application/json
+X-App-Language: en
+
+{
+  "app_key": "your_app_key",
+  "app_secret": "your_app_secret"
+}
+```
+
+响应示例（200）：
+```
 {
   "code": 0,
   "message": "Success",
   "data": {
-    "access_token": "eyJhbGciOasdasdaI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpZGVudGl0eSI6InJuamhrdnQ4Y2RvdnRvdzAiLCJyb2xlIjoiY3VzdG9tZXIiLCJpc3MiOiJkeHByZXNzIiwiZXhwIjoxNzY0ODI3ODI2LCJuYmYiOjE3NjQ3NDE0MjYsImlhdCI6MTc2NDc0MTQyNn0.9g8CP3UFuOZinBB-CceG4wF0a5Z41lBO-Wd84RqotvU",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "expires_in": 86400
   }
 }
 ```
-- Client-side validation suggestions:
-  - `app_key`: validate length 1–100, alphanumeric (e.g., `/^[A-Za-z0-9]{1,100}$/`).
-  - `app_secret`: validate length 1–200, alphanumeric (e.g., `/^[A-Za-z0-9]{1,200}$/`).
-  - Headers: enforce `Content-Type: application/json` and `X-App-Language` is one of `zh|en|es`.
 
-### Create Shipment
-- `POST /shipments`
-- Purpose: create an LTL shipment and return identifiers and estimated charges.
-- Headers: `Content-Type: application/json`, `Authorization`, `Idempotency-Key` (recommended)
-- Request body:
-  - `shipper` (object, required): `{ name, address1, city, state, postal_code, country, phone }`
-  - `consignee` (object, required): same shape as `shipper`
-  - `freight` (array, required): each `{ description, nmfc, class, weight_lb, length_in, width_in, height_in, stackable }`
-  - `accessorials` (array<string>, optional): e.g., `["liftgate_pickup","inside_delivery"]`
-  - `pickup_date` (string, ISO 8601, required)
-  - `reference` (string, optional): customer reference for deduplication
-- Response `201 Created`:
-  - `shipment_id` (string)
-  - `bol_number` (string)
-  - `estimated_charge` (number)
-  - `currency` (string, ISO 4217)
-  - `tracking_url` (string)
-- Errors: `400` invalid payload, `401` unauthorized, `409` duplicate reference, `422` rating failed.
+前端校验建议：
+- `app_key`：长度 1–100，字母数字。
+- `app_secret`：长度 1–200，字母数字。
+- 请求头：`Content-Type` 必须为 `application/json`，`X-App-Language` 必须为 `zh|en|es`。
 
-#### Sample
-```bash
-curl -X POST https://api.yourdomain.com/v1/dx_ltl/shipments \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: 5b0a1c2e-3d4f-5a6b-7c8d-9e0f1a2b3c4d" \
-  -d '{
-    "shipper": { "name": "ABC Co", "address1": "1 Main", "city": "LA", "state": "CA", "postal_code": "90001", "country": "US", "phone": "1234567890" },
-    "consignee": { "name": "XYZ LLC", "address1": "9 Park", "city": "Dallas", "state": "TX", "postal_code": "75201", "country": "US", "phone": "2140000000" },
-    "freight": [{ "description": "Pallets", "nmfc": "12345", "class": "70", "weight_lb": 1200, "length_in": 48, "width_in": 40, "height_in": 60, "stackable": true }],
-    "accessorials": ["liftgate_pickup"],
-    "pickup_date": "2025-12-17",
-    "reference": "PO-123456"
-  }'
-```
-
-### Get Quote
-- `POST /quotes`
-- Purpose: price an LTL shipment without creating it.
-- Headers: `Content-Type: application/json`, `Authorization`
-- Request body: same as Create Shipment (omit `reference`).
-- Response `200 OK`:
-  - `quote_id` (string)
-  - `total_charge` (number)
-  - `surcharges` (array): `{ code, amount, description }`
-  - `transit_days` (integer)
-- Errors: `400` invalid payload, `401` unauthorized, `422` no service.
-
-### Track Shipment
-- `GET /shipments/{shipment_id}/tracking`
-- Purpose: retrieve current status and history.
-- Headers: `Authorization`
-- Path params: `shipment_id` (string)
-- Response `200 OK`:
-  - `shipment_id` (string)
-  - `status` (string; e.g., `IN_TRANSIT`, `DELIVERED`, `EXCEPTION`)
-  - `events` (array): `{ code, description, location, timestamp }`
-- Errors: `401` unauthorized, `404` not found.
-
-## HTTP Status Reference
-- `200/201`: success
-- `400`: validation error
-- `401`: auth failed or missing token
-- `404`: resource not found
-- `409`: duplicate (idempotent key or reference clash)
-- `422`: business rule failure (e.g., rating unavailable)
-
-## Rate Limiting
-- Default: 100 requests per minute per token.
-- Headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After` on 429.
-
-## Changelog
-- v1.0: initial public specification.
+# Changelog
+- v1.0：获取访问令牌接口文档。
 
