@@ -13,6 +13,7 @@ V1.0  （如有建议，请在 issues 提出）
   * [获取访问令牌](#api_get_token)
   * [刷新 Access Token](#api_refresh_token)
   * [物流下单](#api_create_order)
+  * [上传提货清单](#api_upload_delivery_note)
 
 # 一. API 接口规范 <a name="api_standard_index"/>
 
@@ -259,7 +260,70 @@ Authorization: Bearer your_access_token
 - 尺寸/重量：非负数字；数量：正整数。
 - Header：确保 `Content-Type: application/json`、`X-App-Language`、`Authorization: Bearer <token>`。
 
+## 上传提货清单 <a name="api_upload_delivery_note"/>
+用于上传提货清单（PDF Base64），关联已有订单。
+
+描述 | 内容
+--- | ---
+接口功能 | 上传提货清单
+请求协议 | HTTPS
+请求方法 | POST
+请求格式 | `application/json`
+请求 URL | `https://api.bz/ltl/v1/logistics/upload_delivery_note`
+请求头 | `Content-Type: application/json`；`X-App-Language: zh/en/es`；`Authorization: Bearer <access_token>`
+备注 | `stream` 需为 PDF 文件的 Base64；orderId 需准确
+响应格式 | JSON
+
+请求体参数：
+
+参数 | 描述 | 必填 | 类型 | 规则/说明
+--- | --- | --- | --- | ---
+orderId | 订单号 | 是 | number | 正整数；为提货单号依据
+stream | PDF Base64 | 是 | string | 仅支持 PDF，Base64 编码
+
+请求头参数：
+
+参数名 | 示例值 | 必填 | 描述
+--- | --- | --- | ---
+Content-Type | application/json | 是 | 请求体 JSON
+X-App-Language | en | 是 | 返回语言（`zh`、`en`、`es`）
+Authorization | Bearer your_access_token | 是 | 访问令牌
+
+请求示例：
+```
+POST https://api.bz/ltl/v1/logistics/upload_delivery_note
+Content-Type: application/json
+X-App-Language: en
+Authorization: Bearer your_access_token
+
+{
+  "orderId": 1100000000000006,
+  "stream": "BASE64_OF_PDF"
+}
+```
+
+响应示例（200）：
+```
+{
+  "code": 0,
+  "message": "Success",
+  "data": {}
+}
+```
+
+错误处理：
+- 400：参数缺失或格式错误（如 Base64 非法）。
+- 401：认证失败，检查 Authorization。
+- 404：接口/资源不存在。
+- 500：服务器异常。
+
+前端校验建议：
+- `orderId`：正整数。
+- `stream`：Base64 字符串；文件类型应为 PDF（可在上传前校验 MIME）。
+- Header：`Content-Type: application/json`、`X-App-Language` 合法、`Authorization` 携带有效 token。
+
 # Changelog
+- v1.3：新增上传提货清单接口。
 - v1.2：新增物流下单接口。
 - v1.1：刷新 Access Token 接口明确为无请求体，仅需 Header 携带 Bearer Token。
 - v1.0：获取访问令牌接口文档。
