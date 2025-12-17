@@ -35,8 +35,8 @@ curl -X POST https://api.bz/ltl/v1/auth/get_access_token \
   -H "Content-Type: application/json" \
   -H "X-App-Language: en" \
   -d '{
-    "app_key": "sFpB619dM3NKI98d8K015ZrwbCPTL2Vs",
-    "app_secret": "go8CADu1XGevFMikLAiL3DXFyUrEuh5KjGcqeH2ulj1lpHGJacFxRtpbhUkqP7Vq"
+    "app_key": "app_key",
+    "app_secret": "app_secretq"
   }'
 ```
 - Success response (`200`)
@@ -45,7 +45,7 @@ curl -X POST https://api.bz/ltl/v1/auth/get_access_token \
   "code": 0,
   "message": "Success",
   "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpZGVudGl0eSI6InJuamhrdnQ4Y2RvdnRvdzAiLCJyb2xlIjoiY3VzdG9tZXIiLCJpc3MiOiJkeHByZXNzIiwiZXhwIjoxNzY0ODI3ODI2LCJuYmYiOjE3NjQ3NDE0MjYsImlhdCI6MTc2NDc0MTQyNn0.9g8CP3UFuOZinBB-CceG4wF0a5Z41lBO-Wd84RqotvU",
+    "access_token": "eyJhbGciOasdasdaI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpZGVudGl0eSI6InJuamhrdnQ4Y2RvdnRvdzAiLCJyb2xlIjoiY3VzdG9tZXIiLCJpc3MiOiJkeHByZXNzIiwiZXhwIjoxNzY0ODI3ODI2LCJuYmYiOjE3NjQ3NDE0MjYsImlhdCI6MTc2NDc0MTQyNn0.9g8CP3UFuOZinBB-CceG4wF0a5Z41lBO-Wd84RqotvU",
     "expires_in": 86400
   }
 }
